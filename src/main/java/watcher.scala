@@ -64,11 +64,14 @@ object watcher {
           println(kind.toString)
           val hash : String =  findHash(fileName)
           val mostFreqWord : String = mostFrequentWord(fileName)
+          val lines : Long = numberOfLines(fileName)
           // val noOfWords : String = numberOfWords(fileName)
           val data : String  = "FILE : " + fileName +
             "\nEVENT : " + kind +
             "\nHash : " + hash +
-            "\nMost_Frequent Word : " + mostFreqWord
+            "\nMost_Frequent Word : " + mostFreqWord +
+            "\nNumber Of Lines: " + lines +
+            "\n"
           println("creating trailer file for : " + fileName)
           Files.write(Paths.get(myDir + "/" + getFileName(fileName) + ".tlr"),data.getBytes())
           oldHash = hash
@@ -112,12 +115,23 @@ object watcher {
 
   def mostFrequentWord(fileName: String) : String = {
     val contents = sc.textFile(myDir + seperator + fileName)
+    if(contents.isEmpty()){
+      return "File is Empty"
+    }
     val wc = contents.flatMap(line => line.split("!| |,|;"))
                       .map(word => (word,1))
                         .reduceByKey(_+_)
     val wc_swap = wc.map(_.swap)
     val highFreq = wc_swap.sortByKey(false,1)
     highFreq.first().toString
+  }
+
+  def numberOfLines(fileName : String) : Long = {
+    try{
+      sc.textFile(myDir + seperator + fileName).count()
+    } catch {
+      case e : Exception => return 0
+    }
   }
 
   def deleteTrailerFile(fileName: String) : Unit = {
